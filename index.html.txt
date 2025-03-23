@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walking Token - Moeda Fitness na Blockchain</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --accent: #FFC107;
+            --dark: #1A237E;
+            --gradient: linear-gradient(45deg, var(--primary), var(--secondary));
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            background: var(--dark);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Logo Animado */
+        .logo-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .main-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.5));
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .logo-glare {
+            position: absolute;
+            width: 40%;
+            height: 40%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.4));
+            top: 10%;
+            left: -30%;
+            transform: rotate(30deg);
+            animation: glare 5s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glare {
+            100% { left: 130%; }
+        }
+
+        /* Seção Principal */
+        .hero {
+            padding: 100px 20px;
+            text-align: center;
+            background: var(--gradient);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+
+        .countdown {
+            font-size: 2.5em;
+            margin: 30px 0;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Seção de Recursos */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 50px 20px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Seção de Compra */
+        .purchase-section {
+            display: none;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+
+        .phase-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ff9f43);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            animation: glow 2s infinite;
+        }
+
+        /* Botões e Interações */
+        .cta-button {
+            background: var(--accent);
+            padding: 15px 40px;
+            border-radius: 30px;
+            color: var(--dark);
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .logo-container {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .countdown {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Página Principal -->
+    <div id="mainContent">
+        <section class="hero">
+            <div class="logo-container">
+                <div class="logo-glare"></div>
+                <img src="logo.jpg" alt="Walking Token" class="main-logo">
+            </div>
+            <h1>WALKING TOKEN</h1>
+            <div class="countdown" id="countdown">10:00:00:00</div>
+            <button class="cta-button" onclick="showPurchasePage()">Compre Agora com 40% OFF!</button>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h2>💰 Tokenomics</h2>
+                <ul>
+                    <li>Fornecimento máximo: 42M</li>
+                    <li>Taxa de queima: 0.005%</li>
+                    <li>Adição à liquidez: 0.04%</li>
+                </ul>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 65%"></div>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <h2>🏃 App de Mineração</h2>
+                <p>0.5 WALKING a cada 500 metros</p>
+                <button class="cta-button">Baixar App</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Página de Compra -->
+    <div id="purchaseSection" class="purchase-section">
+        <button class="cta-button" onclick="goBack()">← Voltar</button>
+        
+        <div class="phase-badge" id="phaseBadge"></div>
+
+        <div class="feature-card">
+            <div class="price-calculator">
+                <h3>🤑 Calculadora</h3>
+                <input type="range" id="tokenRange" min="100" max="10500000" value="1000" 
+                       oninput="updateCalculation()" style="width: 100%">
+                <div style="margin: 20px 0;">
+                    <span id="tokenAmount">1,000</span> WALKING × 
+                    <span id="tokenPrice">0.0012</span> USD = 
+                    <span style="color: var(--accent);" id="totalPrice">1.20 USD</span>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <h3>🔒 Pagamento</h3>
+                <button class="cta-button" onclick="showCrypto()">
+                    <i class="fab fa-bitcoin"></i> Cripto
+                </button>
+                <button class="cta-button" onclick="showCard()">
+                    <i class="fa fa-credit-card"></i> Cartão
+                </button>
+            </div>
+
+            <div id="cryptoSection" style="display: none; margin-top: 20px;">
+                <div class="feature-card">
+                    <p>BTC: <span id="btcAddress">1A1zP1...DivfNa</span></p>
+                    <p>ETH: <span id="ethAddress">0x4bbeE...a261520</span></p>
+                </div>
+            </div>
+
+            <div id="cardSection" style="display: none; margin-top: 20px;">
+                <div id="cardElement" style="background: white; padding: 15px; border-radius: 10px;"></div>
+                <button id="cardButton" class="cta-button" style="margin-top: 20px; width: 100%">
+                    Pagar <span id="cardTotal">1.20</span> USD
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurações
+        const presaleStart = new Date('2024-03-25T00:00:00');
+        const phases = [
+            { days: [0,1,2], price: 0.0012, max: 3150000 },
+            { days: [3,4,5], price: 0.0014, max: 3150000 },
+            { days: [6,7,8], price: 0.0016, max: 4200000 }
+        ];
+
+        // Navegação
+        function showPurchasePage() {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('purchaseSection').style.display = 'block';
+            updatePhase();
+        }
+
+        function goBack() {
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('purchaseSection').style.display = 'none';
+        }
+
+        // Atualizações
+        function updatePhase() {
+            const diffDays = Math.floor((Date.now() - presaleStart) / 86400000);
+            const phase = phases.find(p => p.days.includes(diffDays)) || phases[0];
+            
+            document.getElementById('phaseBadge').textContent = 
+                `FASE ${phases.indexOf(phase)+1} • ${phase.price.toFixed(4)} USD/token`;
+            
+            document.getElementById('tokenPrice').textContent = phase.price.toFixed(4);
+            document.getElementById('tokenRange').max = phase.max;
+        }
+
+        function updateCalculation() {
+            const tokens = document.getElementById('tokenRange').value;
+            const price = document.getElementById('tokenPrice').textContent;
+            document.getElementById('totalPrice').textContent = (tokens * price).toFixed(2) + ' USD';
+        }
+
+        // Contagem Regressiva
+        function updateCountdown() {
+            const end = presaleStart.getTime() + 9*86400000;
+            const diff = end - Date.now();
+            
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            
+            document.getElementById('countdown').textContent = 
+                `${days}d ${hours}h ${minutes}m`;
+        }
+
+        // Inicialização
+        const stripe = Stripe('SUA_CHAVE_STRIPE_AQUI');
+        setInterval(updateCountdown, 60000);
+        setInterval(updatePhase, 3600000);
+        updateCountdown();
+        updatePhase();
+    </script>
+</body>
+</html>
